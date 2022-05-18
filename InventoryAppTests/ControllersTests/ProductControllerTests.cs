@@ -29,14 +29,14 @@ namespace InventoryAppTests.ControllersTests
         [Test]
         public void Should_Return_Not_Null_Collection_Successfully()
         {
-            var productListResult = productController.GetProducts(1);
+            var productListResult = productController.Get(1);
             Assert.IsNotNull(productListResult);
         }
 
         [Test]
         public void Should_Return_Valid_Collection_Successfully()
         {
-            var productListResult = productController.GetProducts(1);
+            var productListResult = productController.Get(1);
             Assert.AreEqual(ProductDataGenerator.ProductList.ToArray()[0].Name, 
                 productListResult.ToArray()[0].Name);
         }

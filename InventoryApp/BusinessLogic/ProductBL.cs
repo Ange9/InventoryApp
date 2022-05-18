@@ -10,9 +10,14 @@ namespace InventoryApp.BusinessLogic
         XMLReader xMLReader = new XMLReader();
         public IEnumerable<Product> GetItems(int sorting)
         {
-            return xMLReader.Products();
+            return xMLReader.GetProductsSortedList();
         }
         public void x() {
+            List<Product> lp = new();
+            lp.Add(new Product() {Name="A" });
+            lp.Add(new Product() { Name = "B" });
+            lp.Add(new Product() { Name = "D" });
+            lp.Insert(2, new Product() { Name = "C" });
             //ArrayList myList = new ArrayList(5);
             //myList.Add("A");
             //myList.Add("B");
@@ -22,10 +27,10 @@ namespace InventoryApp.BusinessLogic
             //myList.Insert(1, "Z");
             //myList.RemoveAt(5);
 
-            //foreach (string str in myList)
-            //{
-            //    var c = str;
-            //}
+            foreach (Product item in lp)
+            {
+                var c = item.Name;
+            }
         }
 
     }

@@ -13,19 +13,19 @@ namespace InventoryAppTests.Utilities
                 return new Product[1]
                 {
                     new Product() {
-                        Name = "Bill",  Price = 2.99,Quatity = 3
+                        Name = "Bill",  Price = 2.99,Quantity = 3
                     }
                 };
             }
         }
 
-        public static ArrayList NameList
+        public static ArrayList SortedNameList
         {
             get
             {
                 return new ArrayList(5)
                 {
-                    "Apple", "Beat","Carrot", "Date", "Gum"
+                    "bed", "bench","chair", "couch", "pillow"
                 };
             }
         }

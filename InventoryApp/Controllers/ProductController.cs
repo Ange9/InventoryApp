@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace InventoryApp.Controllers
 {
+    [ApiController]
     [Route("[controller]")]
     public class ProductController : ControllerBase
     {
@@ -22,10 +23,12 @@ namespace InventoryApp.Controllers
             _itemBL = itemBL;
 
         }
+        [HttpGet]
 
-        public IEnumerable<Product> GetProducts(int sorting)
+        public IEnumerable<Product> Get(int sorting=0)
         {
-            return _itemBL.GetItems(sorting);
+            var v = _itemBL.GetItems(sorting).ToArray();
+            return v;
         }
     }
 }
