@@ -1,7 +1,7 @@
 ﻿using InventoryApp.BusinessLogic.Interfaces;
 using InventoryApp.Controllers;
 using InventoryApp.Entities;
-using InventoryAppTests.ControllersTests.Utilities;
+using InventoryAppTests.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
