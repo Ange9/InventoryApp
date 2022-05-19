@@ -1,32 +1,30 @@
-﻿using InventoryApp.BusinessLogic;
-using InventoryApp.BusinessLogic.Interfaces;
-using InventoryApp.Controllers;
-using InventoryApp.DataAccess;
+﻿using InventoryApp.DataAccess;
 using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
-using InventoryAppTests.Utilities;
-using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace InventoryAppTests.BusinessLogicTests
+
+namespace InventoryAppTests.DataAccessTests
 {
     [TestFixture]
-    public class ProductBLTests
+    public class ProductXMLReaderTests
     {
-        private ProductBL productBL;
-        private readonly Mock<IXMLReader<Product>> xmlReader = new();
-
+        private ProductXMLReader xmlReader;
+        private readonly Mock<IObjectComparator<Product>> comparator = new();
 
         [SetUp]
         public void Setup()
         {
-            productBL = new ProductBL(xmlReader.Object);
-            xmlReader.Setup(s => s.ReadXML(It.IsAny<int>()))
-                .Returns(ProductDataGenerator.ProductList);
+            xmlReader = new ProductXMLReader();
+
+            comparator.Setup(s => s.Compare(It.IsAny<Product>(), It.IsAny<Product>()))
+                .Returns(1);
 
         }
 
@@ -34,9 +32,9 @@ namespace InventoryAppTests.BusinessLogicTests
         [Test]
         public void Should_Initially_Sort_Alphabetically_By_Name_Successfully()
         {
-            var result=productBL.GetItems(1);
+            //var result = productBL.GetItems(1);
 
-            Assert.AreEqual("Bill", result.ToArray()[0].Name);
+            //Assert.AreEqual("Bill", result.ToArray()[0].Name);
 
         }
 

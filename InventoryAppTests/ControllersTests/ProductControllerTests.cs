@@ -14,7 +14,7 @@ namespace InventoryAppTests.ControllersTests
     {
         private ProductController productController;
         private readonly Mock<ILogger<ProductController>> loggerMock = new();
-        private readonly Mock<IItemBL<Product>> productBLMock = new ();
+        private readonly Mock<ISubjectBL<Product>> productBLMock = new ();
 
         [SetUp]
         public void Setup()

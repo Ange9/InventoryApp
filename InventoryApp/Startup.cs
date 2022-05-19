@@ -1,5 +1,7 @@
 using InventoryApp.BusinessLogic;
 using InventoryApp.BusinessLogic.Interfaces;
+using InventoryApp.DataAccess;
+using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,7 +31,10 @@ namespace InventoryApp
                 configuration.RootPath = "ClientApp/dist";
             });
 
-            services.AddScoped<IItemBL<Product>, ProductBL>();
+            services.AddScoped<ISubjectBL<Product>, ProductBL>();
+            services.AddScoped<IXMLReader<Product>, ProductXMLReader>();
+
+
 
         }
 

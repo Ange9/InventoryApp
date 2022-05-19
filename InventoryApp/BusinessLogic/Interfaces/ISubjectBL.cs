@@ -2,9 +2,9 @@
 
 namespace InventoryApp.BusinessLogic.Interfaces
 {
-    public interface IItemBL<T>
+    public interface ISubjectBL<T>
     {
-        IEnumerable<T> GetItems(int sorting);
+        IEnumerable<T> GetItems(string sorting);
 
     }
 }

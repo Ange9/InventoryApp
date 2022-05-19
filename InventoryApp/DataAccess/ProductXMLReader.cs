@@ -1,4 +1,5 @@
-﻿using InventoryApp.Entities;
+﻿using InventoryApp.DataAccess.Interfaces;
+using InventoryApp.Entities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,29 +7,35 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace InventoryApp.BusinessLogic
+namespace InventoryApp.DataAccess
 {
-    public class XMLReader
+    public class ProductXMLReader: IXMLReader<Product>
     {
+        private IObjectComparator<Product> _comparator;
 
-        public List<Product> GetProductsSortedList(int sortingParam=0)
+        public void Create(string sorting)
         {
-        
-            switch (sortingParam)
+            switch (sorting)
             {
-                case 0:
-                    return ReadXMLSortingName();
-                case 1:
+                case "0":
+                    _comparator = new NameComparator();
                     break;
-                case 2:
+                case "1":
+                    _comparator = new PriceComparator();
                     break;
-            }
-            return new List<Product>();
+                case "2":
+                    _comparator = new QuantityComparator();
+                    break;
 
-            
+                    //default:
+                    //    throw new InvalidBirdTypeException();
+            }
         }
 
-        public List<Product> ReadXMLSortingName() {
+
+        public IEnumerable<Product> ReadXML(string sorting)
+        {
+            Create(sorting);
             string filePath = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory.xml";
 
             XmlReaderSettings settings = new()
@@ -47,7 +54,7 @@ namespace InventoryApp.BusinessLogic
                         {
                             string id = reader.GetAttribute("name");
                             int quantity;
-                            int.TryParse(reader.GetAttribute("quantity"), out quantity);
+                            int.TryParse(reader.GetAttribute("qty"), out quantity);
                             double price;
                             double.TryParse(reader.GetAttribute("price"), out price);
 
@@ -62,33 +69,40 @@ namespace InventoryApp.BusinessLogic
 
                             if (productList.Count == 0)
                             {
-                                productList.Add(product);                             
+                                productList.Add(product);
                             }
-                            else {
+                            else
+                            {
                                 var inserted = false;
                                 var greaterThanAll = false;
-                                while (!inserted && !greaterThanAll) {
-                                    if (index >= 5) {
+                                while (!inserted && !greaterThanAll)
+                                {
+                                    if (index >= 5)
+                                    {
                                         greaterThanAll = true;
                                     }
-                                    if (productList.Count == index) {
+                                    if (productList.Count == index)
+                                    {
                                         productList.Add(product);
                                         inserted = true;
                                     }
-                                    var isNewSmaller = product.Name.CompareTo(productList[index].Name) < 0;
+                                    var isNewSmaller = this._comparator.Compare(product, productList[index])<0;
+
                                     if (isNewSmaller)
                                     {
                                         productList.Insert(index, product);
                                         inserted = true;
                                     }
-                                    else {
-                                        index++;                                        
+                                    else
+                                    {
+                                        index++;
                                     }
                                 }
-                                if (productList.Count>5) {
-                                    productList.RemoveRange(5,1);
+                                if (productList.Count > 5)
+                                {
+                                    productList.RemoveRange(5, 1);
                                 }
-                            }                                                                         
+                            }
                         }
 
                     }

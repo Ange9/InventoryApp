@@ -13,21 +13,20 @@ namespace InventoryApp.Controllers
     [Route("[controller]")]
     public class ProductController : ControllerBase
     {
-        private readonly IItemBL<Product> _itemBL; 
+        private readonly ISubjectBL<Product> _subjectBL; 
 
         private ILogger<ProductController> _logger;
 
-        public ProductController(ILogger<ProductController> logger, IItemBL<Product> itemBL)
+        public ProductController(ILogger<ProductController> logger, ISubjectBL<Product> subject)
         {
             this._logger = logger;
-            _itemBL = itemBL;
+            _subjectBL = subject;
 
         }
         [HttpGet]
-
-        public IEnumerable<Product> Get(int sorting=0)
+        public IEnumerable<Product> Get(string sorting)
         {
-            var v = _itemBL.GetItems(sorting).ToArray();
+            var v = _subjectBL.GetItems(sorting);
             return v;
         }
     }
