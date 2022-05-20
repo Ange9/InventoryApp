@@ -1,11 +1,8 @@
-﻿using InventoryApp.BusinessLogic;
-using InventoryApp.BusinessLogic.Interfaces;
+﻿using InventoryApp.BusinessLogic.Interfaces;
 using InventoryApp.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace InventoryApp.Controllers
 {
@@ -24,10 +21,9 @@ namespace InventoryApp.Controllers
 
         }
         [HttpGet]
-        public IEnumerable<Product> Get(string sorting)
+        public IEnumerable<Product> Get([FromQuery] string sortingParam)
         {
-            var v = _subjectBL.GetItems("0");
-            return v;
+            return _subjectBL.GetItems(sortingParam);
         }
     }
 }

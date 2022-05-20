@@ -7,27 +7,28 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class FetchProductComponent {
   public products: Product[];
-  public sorting: string = 'nm';
   public http: HttpClient;
-  baseUrl: string
+  baseUrl: string;
+  sortParam: string = '0';
 
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
     this.http = http;
     this.baseUrl = baseUrl;
+    this.sortParam = '0';
+
   }
 
   private getAll() {
-    let headers = new HttpHeaders();
-    headers.append('Content-Type', 'application/json');
-    headers.append('Access-Control-Allow-Headers', 'Content-Type');
-    headers.append('sorting', this.sorting);
-    this.http.get<Product[]>(this.baseUrl + 'product', { headers: headers}).subscribe(result => {
+    this.http.get<Product[]>(this.baseUrl + 'product', {
+      params: {
+        'sorting': this.sortParam
+      }}).subscribe(result => {
       this.products = result;
     }, error => console.error(error));
   }
   sortAscending(pos: string) {
-    this.sorting = pos;
+    this.sortParam = pos;
     this.getAll();
   }
   ngOnInit() {
