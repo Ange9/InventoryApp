@@ -22,7 +22,7 @@ export class FetchProductComponent {
   private getAll() {
     this.http.get<Product[]>(this.baseUrl + 'product', {
       params: {
-        'sorting': this.sortParam
+        'sortingParam': this.sortParam
       }}).subscribe(result => {
       this.products = result;
     }, error => console.error(error));
