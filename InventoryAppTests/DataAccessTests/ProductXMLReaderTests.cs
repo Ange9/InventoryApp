@@ -1,6 +1,7 @@
 ﻿using InventoryApp.DataAccess;
 using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
+using InventoryApp.Enums;
 using InventoryAppTests.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -28,15 +29,7 @@ namespace InventoryAppTests.DataAccessTests
             comparator.Setup(s => s.Compare(It.IsAny<Product>(), It.IsAny<Product>()))
                 .Returns(1);
 
-            //string path = Directory.GetCurrentDirectory();
-            //string escapedPath = path.Replace(@"\", @"/");
-
-            //string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"\inventory.xml");
-            //string[] files = File.ReadAllLines(path);
-
-            string path = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory.xml";
-
-
+            string path = XmlGenerator.XmlStringInventory1;
             _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
                 .Returns(path);
 
@@ -49,38 +42,46 @@ namespace InventoryAppTests.DataAccessTests
         [Test]
         public void Should_Create_Name_Comparator_Instance_When_Sorting_By_Name_Successfully()
         {
-            IObjectComparator<Product> comparator = xmlReader.Create("0");
+            IObjectComparator<Product> comparator = xmlReader.CreateComparator(SortParameter.NAME);
             Assert.IsInstanceOf(typeof(NameComparator), comparator);
         }
         [Test]
         public void Should_Create_Price_Comparator_Instance_When_Sorting_By_Price_Successfully()
         {
-            IObjectComparator<Product> comparator = xmlReader.Create("1");
+            IObjectComparator<Product> comparator = xmlReader.CreateComparator(SortParameter.PRICE);
             Assert.IsInstanceOf(typeof(PriceComparator), comparator);
         }
         [Test]
         public void Should_Create_Quantity_Comparator_Instance_When_Sorting_By_Quantity_Successfully()
         {
-            IObjectComparator<Product> comparator = xmlReader.Create("2");
+            IObjectComparator<Product> comparator = xmlReader.CreateComparator(SortParameter.QUANTITY);
             Assert.IsInstanceOf(typeof(QuantityComparator), comparator);
         }
+        
         [Test]
-        public void Should_Create_Name_Comparator_Instance_When_No_Valid_Sorting_Specified()
-        {
-            IObjectComparator<Product> comparator = xmlReader.Create("5");
-            Assert.IsInstanceOf(typeof(NameComparator), comparator);
-        }
-
-        [Test]
-        public void Should_Initially_Sort_Alphabetically_By_Name_Successfully()
+        public void Should_Sort_Alphabetically_By_Name_Successfully()
         {
             NameSortSetup();
-            var result =xmlReader.ReadXML("0");
+            var result =xmlReader.ReadXML(SortParameter.NAME);
             Assert.AreEqual("bed", result.ToArray()[0].Name);
             Assert.AreEqual("bench", result.ToArray()[1].Name);
             Assert.AreEqual("chair", result.ToArray()[2].Name);
             Assert.AreEqual("couch", result.ToArray()[3].Name);
             Assert.AreEqual("pillow", result.ToArray()[4].Name);
+        }
+        [Test]
+        public void Should_Sort_Alphabetically_By_Name_When_Duplicated_Names_Successfully()
+        {
+            string path = XmlGenerator.XmlWithDuplicatedProductName;
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
+                .Returns(path);
+            NameSortSetup();
+            var result = xmlReader.ReadXML(SortParameter.NAME);
+            Assert.AreEqual("bed", result.ToArray()[0].Name);
+            Assert.AreEqual("bench", result.ToArray()[1].Name);
+            Assert.AreEqual("bench", result.ToArray()[2].Name);
+            Assert.AreEqual("chair", result.ToArray()[3].Name);
+            Assert.AreEqual("couch", result.ToArray()[4].Name);
         }
 
         private void NameSortSetup()
@@ -112,6 +113,8 @@ namespace InventoryAppTests.DataAccessTests
             comparator.Setup(s => s.Compare(ProductDataGenerator.Bed, ProductDataGenerator.Stool))
                .Returns(-1);
 
+            comparator.Setup(s => s.Compare(ProductDataGenerator.Bench, ProductDataGenerator.Bench))
+               .Returns(0);
             comparator.Setup(s => s.Compare(ProductDataGenerator.Bench, ProductDataGenerator.Bed))
                .Returns(1);
             comparator.Setup(s => s.Compare(ProductDataGenerator.Bench, ProductDataGenerator.Table))
@@ -184,7 +187,7 @@ namespace InventoryAppTests.DataAccessTests
         public void Should_Sort_Ascending_By_Price_Successfully()
         {
             PriceSortSetup();
-            var result = xmlReader.ReadXML("1");
+            var result = xmlReader.ReadXML(SortParameter.PRICE);
             Assert.AreEqual(5, result.ToArray()[0].Price);
             Assert.AreEqual(9.99, result.ToArray()[1].Price);
             Assert.AreEqual(19.99, result.ToArray()[2].Price);
@@ -292,7 +295,7 @@ namespace InventoryAppTests.DataAccessTests
         public void Should_Sort_Ascending_By_Quantity_Successfully()
         {
             QuantitySortSetup();
-            var result = xmlReader.ReadXML("2");
+            var result = xmlReader.ReadXML(SortParameter.QUANTITY);
             Assert.AreEqual(1, result.ToArray()[0].Quantity);
             Assert.AreEqual(1, result.ToArray()[1].Quantity);
             Assert.AreEqual(2, result.ToArray()[2].Quantity);
@@ -402,20 +405,18 @@ namespace InventoryAppTests.DataAccessTests
         public void Should_Return_Top_Five_Successfully()
         {
             QuantitySortSetup();
-            var result = xmlReader.ReadXML("2");
+            var result = xmlReader.ReadXML(SortParameter.QUANTITY);
             Assert.AreEqual(5, result.Count());
         }
         [Test]
         public void Should_Ignore_Product_Couch_With_Invalid_Quantity_Format_Successfully()
         {
-            string path = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory2.xml";
+            string path = XmlGenerator.XmlWithWrongQuantityDataValue;      
             _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
                 .Returns(path);
-            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:recordsToReturn")])
-                .Returns("5");
 
             NameSortSetup();
-            var result = xmlReader.ReadXML("0");
+            var result = xmlReader.ReadXML(SortParameter.NAME);
             Assert.AreEqual("bed", result.ToArray()[0].Name);
             Assert.AreEqual("bench", result.ToArray()[1].Name);
             Assert.AreEqual("chair", result.ToArray()[2].Name);
@@ -426,14 +427,12 @@ namespace InventoryAppTests.DataAccessTests
         [Test]
         public void Should_Ignore_Product_Couch_With_Null_Quantity_Tag_Successfully()
         {
-            string path = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory3.xml";
+            string path = XmlGenerator.XmlWithNullQuantityTag;
             _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
                 .Returns(path);
-            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:recordsToReturn")])
-                .Returns("5");
 
             NameSortSetup();
-            var result = xmlReader.ReadXML("0");
+            var result = xmlReader.ReadXML(SortParameter.NAME);
             Assert.AreEqual("bed", result.ToArray()[0].Name);
             Assert.AreEqual("bench", result.ToArray()[1].Name);
             Assert.AreEqual("chair", result.ToArray()[2].Name);
@@ -444,14 +443,12 @@ namespace InventoryAppTests.DataAccessTests
         [Test]
         public void Should_Ignore_Product_Couch_With_Invalid_Price_Format_Successfully()
         {
-            string path = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory4.xml";
+            string path = XmlGenerator.XmlWithWrongPriceDataValue;
             _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
                 .Returns(path);
-            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:recordsToReturn")])
-                .Returns("5");
 
             NameSortSetup();
-            var result = xmlReader.ReadXML("0");
+            var result = xmlReader.ReadXML(SortParameter.NAME);
             Assert.AreEqual("bed", result.ToArray()[0].Name);
             Assert.AreEqual("bench", result.ToArray()[1].Name);
             Assert.AreEqual("chair", result.ToArray()[2].Name);
@@ -462,22 +459,22 @@ namespace InventoryAppTests.DataAccessTests
         [Test]
         public void Should_Return_Top_Items_When_Less_Than_Five_Received_Successfully()
         {
-            string path = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory5.xml";
+            string path = XmlGenerator.XmlWithTwoProducts;
             _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:filepath")])
                 .Returns(path);
-            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:recordsToReturn")])
-                .Returns("5");
             QuantitySortSetup();
-            var result = xmlReader.ReadXML("2");
+            var result = xmlReader.ReadXML(SortParameter.QUANTITY);
             Assert.AreEqual(2, result.Count());
         }
-
         [Test]
-        public void Should_Format_Price_Successfully()
+        public void Should_Return_Top_Seven_Successfully()
         {
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "XMLReaderConfiguration:recordsToReturn")])
+                .Returns("7");
 
+            QuantitySortSetup();
+            var result = xmlReader.ReadXML(SortParameter.QUANTITY);
+            Assert.AreEqual(7, result.Count());
         }
-
-
     }
 }

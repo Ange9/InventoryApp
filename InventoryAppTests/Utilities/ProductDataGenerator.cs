@@ -63,7 +63,7 @@ namespace InventoryAppTests.Utilities
                 return new List<Product>
                 {
                     new Product() {
-                        Name = "Bill",  Price = 2.99,Quantity = 3
+                        Name = "table",  Price = 2.99,Quantity = 3
                     }
                 };
             }

@@ -11,11 +11,14 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let product of products">
+    <tr *ngFor="let product of products ; let i=index;"
+        [ngStyle]="product.quantity > 3 ? {'background-color':'red'} : ''">
       <td>{{ product.name }}</td>
       <td>{{ product.price | currency:'USD'}}</td>
-      <td>{{ product.quantity }}</td>
-
+      <td >{{ product.quantity }}</td>
     </tr>
   </tbody>
 </table>
+
+
+

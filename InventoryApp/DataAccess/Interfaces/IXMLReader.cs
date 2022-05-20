@@ -1,15 +1,10 @@
-﻿using InventoryApp.Entities;
-using System;
+﻿using InventoryApp.Enums;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace InventoryApp.DataAccess.Interfaces
 {
     public interface IXMLReader<T>
     {
-        public List<T> ReadXML(string sorting);
-
+        public List<T> ReadXML(SortParameter sorting);
     }
 }

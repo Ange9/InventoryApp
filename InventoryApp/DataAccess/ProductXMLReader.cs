@@ -1,6 +1,6 @@
 ﻿using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
-using InventoryApp.Exceptions;
+using InventoryApp.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -12,30 +12,27 @@ namespace InventoryApp.DataAccess
     {
         private IObjectComparator<Product> _comparator;
         private readonly IConfiguration _configuration;
-        private ILogger<ProductXMLReader> _logger;
-
+        private readonly ILogger<ProductXMLReader> _logger;
 
         public ProductXMLReader(IConfiguration configuration, ILogger<ProductXMLReader> logger)
         {
             _configuration = configuration;
             _logger = logger;
         }
-
-
-        public IObjectComparator<Product> Create(string sorting)
+        public IObjectComparator<Product> CreateComparator(SortParameter sorting)
         {
             return sorting switch
             {
-                "0" => new NameComparator(),
-                "1" => new PriceComparator(),
-                "2" => new QuantityComparator(),
+                SortParameter.NAME => new NameComparator(),
+                SortParameter.PRICE => new PriceComparator(),
+                SortParameter.QUANTITY => new QuantityComparator(),
                 _ => new NameComparator(),
             };
         }
 
-        public List<Product> ReadXML(string sorting)
+        public List<Product> ReadXML(SortParameter sorting)
         {
-            _comparator = Create(sorting);
+            _comparator = CreateComparator(sorting);
             var productList = new List<Product>();
 
             int numberOfRecordsToReturn = GetMaxRecordsToReturn();
@@ -62,9 +59,8 @@ namespace InventoryApp.DataAccess
                             bool allAttributesHasValidFormat = ValidateIfAllAttributeHasValidFormat(parsedToInt, quantity, parsedToDouble, price);
                             if (!allAttributeHasTag || !allAttributesHasValidFormat)
                             {
-                                continue;
+                                continue;//skip node
                             }
-
 
                             var product = new Product
                             {
@@ -75,7 +71,6 @@ namespace InventoryApp.DataAccess
                             //compare element with existing list, try to insert o discard value if is greater than existing sorted values
                             CompareToExistingElements(numberOfRecordsToReturn, product, ref productList);
                         }
-
                     }
                 }
             }
@@ -99,18 +94,15 @@ namespace InventoryApp.DataAccess
                 DtdProcessing = DtdProcessing.Parse,
                 IgnoreWhitespace = true
             };
-
             return settings;
         }
 
         private bool ValidateIfAllAttributeHasValidFormat(bool parsedToInt, int quantity, bool parsedToDouble, double price)
-        {
-            
+        {     
             if (!parsedToInt)
             {
                 _logger.LogWarning("Skiping invalid data type on quantity: " + quantity);
             }
-
             if (!parsedToDouble)
             {
                 _logger.LogWarning("Skiping invalid data type on price: " + price);
@@ -137,11 +129,6 @@ namespace InventoryApp.DataAccess
             }
             return true;
         }
-
-        
-
-       
-
         private int CompareToExistingElements(int numberOfRecordsToReturn,  Product product, ref List<Product> productList)
         {
             int index = 0;
@@ -192,9 +179,7 @@ namespace InventoryApp.DataAccess
             }
 
             return index;
-        }
-
-   
+        }   
     }
 }
 

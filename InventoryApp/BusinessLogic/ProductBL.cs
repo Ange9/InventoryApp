@@ -1,6 +1,7 @@
 ﻿using InventoryApp.BusinessLogic.Interfaces;
 using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
+using InventoryApp.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,21 +19,20 @@ namespace InventoryApp.BusinessLogic
 			_logger = logger;
 		}
 
-		public List<Product> GetItems(string sorting)
+		public List<Product> GetItems(SortParameter sorting)
 		{
 			List<Product> products= new();
 			try {
 				products = _productXMLReader.ReadXML(sorting);
 			}
-			catch (FileNotFoundException) {
-				_logger.LogError("File not found");
+			catch (FileNotFoundException ex) {
+				_logger.LogError(ex.Message);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError("Error trying to read from excel file"+ ex.Message);
+				_logger.LogError(ex.Message);
 			}
 			return products;
 		}
-
     }
 }

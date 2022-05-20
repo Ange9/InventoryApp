@@ -9,16 +9,14 @@ export class FetchProductComponent {
   public products: Product[];
   public http: HttpClient;
   baseUrl: string;
-  sortParam: string = '0';
+  sortParam: SortParameter = SortParameter.NAME;
 
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
     this.http = http;
     this.baseUrl = baseUrl;
-    this.sortParam = '0';
-
+    this.sortParam = SortParameter.NAME;
   }
-
   private getAll() {
     this.http.get<Product[]>(this.baseUrl + 'product', {
       params: {
@@ -27,7 +25,7 @@ export class FetchProductComponent {
       this.products = result;
     }, error => console.error(error));
   }
-  sortAscending(pos: string) {
+  sortAscending(pos: SortParameter) {
     this.sortParam = pos;
     this.getAll();
   }
@@ -40,6 +38,12 @@ interface Product {
   name: string;
   price: number;
   quantity: number;
+}
+
+enum SortParameter {
+  NAME = "0",
+  PRICE = "1",
+  QUANTITY = "2"
 }
 
 
