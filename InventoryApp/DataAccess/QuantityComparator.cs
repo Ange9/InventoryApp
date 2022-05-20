@@ -14,7 +14,7 @@ namespace InventoryApp.DataAccess
 
         public int Compare(Product source, Product destination)
         {
-            return source.Price <= destination.Price ? SOURCE_IS_SMALLER : SOURCE_IS_GREATER;
+            return source.Quantity <= destination.Quantity ? SOURCE_IS_SMALLER : SOURCE_IS_GREATER;
         }
 
 

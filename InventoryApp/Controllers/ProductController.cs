@@ -26,7 +26,7 @@ namespace InventoryApp.Controllers
         [HttpGet]
         public IEnumerable<Product> Get(string sorting)
         {
-            var v = _subjectBL.GetItems(sorting);
+            var v = _subjectBL.GetItems("0");
             return v;
         }
     }

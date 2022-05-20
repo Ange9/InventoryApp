@@ -34,8 +34,6 @@ namespace InventoryApp
             services.AddScoped<ISubjectBL<Product>, ProductBL>();
             services.AddScoped<IXMLReader<Product>, ProductXMLReader>();
 
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

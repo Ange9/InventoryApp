@@ -1,10 +1,9 @@
 ﻿using InventoryApp.DataAccess.Interfaces;
 using InventoryApp.Entities;
-using System;
-using System.Collections;
+using InventoryApp.Exceptions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace InventoryApp.DataAccess
@@ -12,39 +11,36 @@ namespace InventoryApp.DataAccess
     public class ProductXMLReader: IXMLReader<Product>
     {
         private IObjectComparator<Product> _comparator;
+        private readonly IConfiguration _configuration;
+        private ILogger<ProductXMLReader> _logger;
 
-        public void Create(string sorting)
+
+        public ProductXMLReader(IConfiguration configuration, ILogger<ProductXMLReader> logger)
         {
-            switch (sorting)
-            {
-                case "0":
-                    _comparator = new NameComparator();
-                    break;
-                case "1":
-                    _comparator = new PriceComparator();
-                    break;
-                case "2":
-                    _comparator = new QuantityComparator();
-                    break;
-
-                    //default:
-                    //    throw new InvalidBirdTypeException();
-            }
+            _configuration = configuration;
+            _logger = logger;
         }
 
 
-        public IEnumerable<Product> ReadXML(string sorting)
+        public IObjectComparator<Product> Create(string sorting)
         {
-            Create(sorting);
-            string filePath = "C:/Users/Rebeca/Downloads/Take Home Exercise (2) (1) (2)/inventory.xml";
-
-            XmlReaderSettings settings = new()
+            return sorting switch
             {
-                DtdProcessing = DtdProcessing.Parse,
-                IgnoreWhitespace = true
+                "0" => new NameComparator(),
+                "1" => new PriceComparator(),
+                "2" => new QuantityComparator(),
+                _ => new NameComparator(),
             };
+        }
+
+        public List<Product> ReadXML(string sorting)
+        {
+            _comparator = Create(sorting);
             var productList = new List<Product>();
-            using (XmlReader reader = XmlReader.Create(filePath, settings))
+
+            int numberOfRecordsToReturn = GetMaxRecordsToReturn();
+
+            using (XmlReader reader = XmlReader.Create(GetFilePath(), GetSettings()))
             {
                 while (reader.Read())
                 {
@@ -52,57 +48,32 @@ namespace InventoryApp.DataAccess
                     {
                         if (reader.Name == "product")
                         {
-                            string id = reader.GetAttribute("name");
-                            int quantity;
-                            int.TryParse(reader.GetAttribute("qty"), out quantity);
-                            double price;
-                            double.TryParse(reader.GetAttribute("price"), out price);
+                            string name = reader.GetAttribute("name");
+                            var quantityElement = reader.GetAttribute("qty");
+                            var priceElement = reader.GetAttribute("price");
+
+                            var allAttributeHasTag = ValidateIfAllAttributeHasTag(name, quantityElement, priceElement);
+
+                            //parse numeric values
+                            var parsedToInt = int.TryParse(quantityElement, out int quantity);
+                            var parsedToDouble = double.TryParse(priceElement, out double price);
+
+                            //validate formats of each value
+                            bool allAttributesHasValidFormat = ValidateIfAllAttributeHasValidFormat(parsedToInt, quantity, parsedToDouble, price);
+                            if (!allAttributeHasTag || !allAttributesHasValidFormat)
+                            {
+                                continue;
+                            }
+
 
                             var product = new Product
                             {
-                                Name = id,
+                                Name = name,
                                 Price = price,
                                 Quantity = quantity,
                             };
-
-                            int index = 0;
-
-                            if (productList.Count == 0)
-                            {
-                                productList.Add(product);
-                            }
-                            else
-                            {
-                                var inserted = false;
-                                var greaterThanAll = false;
-                                while (!inserted && !greaterThanAll)
-                                {
-                                    if (index >= 5)
-                                    {
-                                        greaterThanAll = true;
-                                    }
-                                    if (productList.Count == index)
-                                    {
-                                        productList.Add(product);
-                                        inserted = true;
-                                    }
-                                    var isNewSmaller = this._comparator.Compare(product, productList[index])<0;
-
-                                    if (isNewSmaller)
-                                    {
-                                        productList.Insert(index, product);
-                                        inserted = true;
-                                    }
-                                    else
-                                    {
-                                        index++;
-                                    }
-                                }
-                                if (productList.Count > 5)
-                                {
-                                    productList.RemoveRange(5, 1);
-                                }
-                            }
+                            //compare element with existing list, try to insert o discard value if is greater than existing sorted values
+                            CompareToExistingElements(numberOfRecordsToReturn, product, ref productList);
                         }
 
                     }
@@ -110,6 +81,120 @@ namespace InventoryApp.DataAccess
             }
             return productList;
         }
+
+        private int GetMaxRecordsToReturn()
+        {
+            return int.Parse(_configuration["XMLReaderConfiguration:recordsToReturn"]);
+        }
+
+        private string GetFilePath()
+        {
+            return _configuration["XMLReaderConfiguration:filepath"];
+        }
+
+        private XmlReaderSettings GetSettings()
+        {
+             XmlReaderSettings settings = new()
+            {
+                DtdProcessing = DtdProcessing.Parse,
+                IgnoreWhitespace = true
+            };
+
+            return settings;
+        }
+
+        private bool ValidateIfAllAttributeHasValidFormat(bool parsedToInt, int quantity, bool parsedToDouble, double price)
+        {
+            
+            if (!parsedToInt)
+            {
+                _logger.LogWarning("Skiping invalid data type on quantity: " + quantity);
+            }
+
+            if (!parsedToDouble)
+            {
+                _logger.LogWarning("Skiping invalid data type on price: " + price);
+            }
+            return parsedToDouble && parsedToInt;
+        }
+
+        private bool ValidateIfAllAttributeHasTag(string nameElement, string quantityElement, string priceElement)
+        {
+            if (nameElement == null)
+            {
+                _logger.LogWarning("Skiping, no tag found for Name");
+                return false;
+            }
+            if (quantityElement == null)
+            {
+                _logger.LogWarning("Skiping, no tag found for Quantity");
+                return false;
+            }
+            if (priceElement == null)
+            {
+                _logger.LogWarning("Skiping, no tag found for Price");
+                return false;
+            }
+            return true;
+        }
+
+        
+
+       
+
+        private int CompareToExistingElements(int numberOfRecordsToReturn,  Product product, ref List<Product> productList)
+        {
+            int index = 0;
+
+            //empty list, add first value
+            if (productList.Count == 0)
+            {
+                productList.Add(product);
+            }
+            else
+            {
+                var inserted = false;
+                var greaterThanAll = false;
+                while (!inserted && !greaterThanAll)
+                {
+                    //new value greater than all existing, ignore
+                    if (index >= numberOfRecordsToReturn)
+                    {
+                        greaterThanAll = true;
+                        continue;
+                    }
+                    //list is empty in index position
+                    if (productList.Count == index)
+                    {
+                        productList.Add(product);
+                        inserted = true;
+                        continue;
+                    }
+                    var isNewSmaller = this._comparator.Compare(product, productList[index]) < 0;
+                    //if new value is smaller than existing value in index position
+                    if (isNewSmaller)
+                    {
+                        productList.Insert(index, product);
+                        inserted = true;
+                        continue;
+                    }
+                    //if new value is greater than evaluating position in index, continue iterating
+                    else
+                    {
+                        index++;
+                    }
+                }
+                //if shift cause by adding value in the middle of list results in list bigger than required, remove last value
+                if (productList.Count > numberOfRecordsToReturn)
+                {
+                    productList.RemoveRange(numberOfRecordsToReturn, 1);
+                }
+            }
+
+            return index;
+        }
+
+   
     }
 }
 

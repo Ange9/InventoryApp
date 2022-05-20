@@ -9,7 +9,7 @@ namespace InventoryApp.DataAccess.Interfaces
 {
     public interface IXMLReader<T>
     {
-        public IEnumerable<T> ReadXML(string sorting);
+        public List<T> ReadXML(string sorting);
 
     }
 }

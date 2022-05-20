@@ -5,16 +5,17 @@
 <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="products">
   <thead>
     <tr>
-      <th (click)="sortAscending('name')">Name</th>
-      <th (click)="sortAscending('price')">Price</th>
-      <th (click)="sortAscending('qty')">Quantity</th>
+      <th (click)="sortAscending('nm')">Name</th>
+      <th (click)="sortAscending('pr')">Price</th>
+      <th (click)="sortAscending('qt')">Quantity</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let product of products">
       <td>{{ product.name }}</td>
-      <td>{{ product.price }}</td>
+      <td>{{ product.price | currency:'USD'}}</td>
       <td>{{ product.quantity }}</td>
+
     </tr>
   </tbody>
 </table>
